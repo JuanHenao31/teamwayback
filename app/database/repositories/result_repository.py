@@ -19,7 +19,6 @@ class ResultRepository(RepositoryResult):
                     ResultModel.min_value <= value, ResultModel.max_value >= value
                 ).first()
                 if result is not None:
-                    print("Hi")
                     new_result = result.to_core_model()
                     return ResultDto(id=new_result.id, content=new_result.content,
                                      min_value=new_result.min_value,

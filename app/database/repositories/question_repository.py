@@ -6,7 +6,6 @@ from app.domain.model.dto.question_dto import QuestionDto
 from app.domain.model.entity.question import Question
 from app.domain.ports.repository.repository_question import RepositoryQuestion
 
-
 class QuestionRepository(RepositoryQuestion):
 
     def list_a_question(self, id: int) -> Optional[QuestionDto]:
@@ -16,7 +15,7 @@ class QuestionRepository(RepositoryQuestion):
                     QuestionModel).filter_by(id=id).first()
                 if question is not None:
                     new_question = question.to_core_model()
-                    return QuestionDto(id=new_question.id, content= new_question.content)
+                    return QuestionDto(id=new_question.id, content=new_question.content)
                 return None
 
             except:
@@ -27,7 +26,11 @@ class QuestionRepository(RepositoryQuestion):
     def list_all_question(self, limit=None, offset=None) -> List[QuestionDto]:
         with DBConnection() as connection:
             try:
-                return connection.session.query(QuestionModel).limit(limit=limit).offset(offset=offset).all()
+                random_ids = self.generate_random_question_id()
+                print(random_ids)
+                question = connection.session.query(
+                    QuestionModel).filter(QuestionModel.id.in_(random_ids)).all()
+                return question
             except:
                 return []
             finally:
@@ -87,3 +90,19 @@ class QuestionRepository(RepositoryQuestion):
                 return False
             finally:
                 connection.session.close()
+
+    def generate_random_question_id(self) -> list[int]:
+        import random
+        random_list = []
+        minimum_questions = 3
+        maximum_questions = 5
+        maximum_questions_db = self.max_question_db()
+        for i in range(0, random.randint(minimum_questions, maximum_questions)):
+            number = random.randint(1, maximum_questions_db)
+            random_list.append(number)
+        return random_list
+
+    def max_question_db(self) -> int:
+        with DBConnection() as connection:
+            return connection.session.query(QuestionModel.id).count()
+
